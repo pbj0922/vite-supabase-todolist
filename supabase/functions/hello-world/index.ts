@@ -7,7 +7,14 @@ console.log("Hello from Functions!")
 Deno.serve(async (req) => {
   const { name } = await req.json()
   const data = {
-    message: `Hello ${name}!`,
+    message: `Bye ${name}!`,
+  }
+
+  if (req.method === "PUT") {
+    return new Response(
+      JSON.stringify({ message: "This is put method." }),
+      { headers: { "Content-Type": "application/json" } },
+    );
   }
 
   return new Response(
