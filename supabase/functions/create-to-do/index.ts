@@ -3,31 +3,40 @@
 // This enables autocomplete, go to definition, etc.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   // JWT
   const authHeader = req.headers.get("Authorization")!;
   const { content } = await req.json();
 
-  const supabaseClient = createClient(
+  const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? "",
     { global: { headers: { Authorization: authHeader } } },
   );
 
   // UUID, E-MAIL
-  const { data } = await supabaseClient.auth.getUser();
-  const user = data.user;
+  // const { data } = await supabaseClient.auth.getUser();
+  // const user = data.user;
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const result = await supabaseClient.from("to_do_list").insert({
+  await supabase.from("to_do_list").insert({
     content,
     user_id: user?.id,
   });
 
-  console.log(result);
+  const response = await supabase.from("to_do_list").select().eq(
+    "user_id",
+    user?.id,
+  ).order("id", { ascending: false }).limit(1).single();
 
-  return new Response(JSON.stringify({ message: "test" }), {
-    headers: { "Content-Type": "application/json" },
+  return new Response(JSON.stringify(response), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
 
