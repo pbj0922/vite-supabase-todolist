@@ -4,13 +4,20 @@ import { Session } from "@supabase/supabase-js";
 import { FC, useEffect, useState } from "react";
 import CreateToDo from "./components/CreateToDo";
 import supabase from "./lib/supabaseClient";
+import { IToDo } from ".";
+import ToDoCard from "./components/ToDoCard";
 
 const App: FC = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [toDos, setToDos] = useState<IToDo[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+    });
+
+    supabase.functions.invoke("get-all-to-do").then(({ data }) => {
+      setToDos(data);
     });
 
     const {
@@ -34,6 +41,11 @@ const App: FC = () => {
           <button onClick={() => supabase.auth.signOut()}>Sign Out</button>
         </div>
         <CreateToDo />
+        <ul>
+          {toDos?.map((v) => (
+            <ToDoCard key={v.id} todo={v} />
+          ))}
+        </ul>
       </div>
     );
   }

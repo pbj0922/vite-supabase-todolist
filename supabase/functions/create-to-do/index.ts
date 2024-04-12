@@ -30,12 +30,12 @@ Deno.serve(async (req) => {
     user_id: user?.id,
   });
 
-  const response = await supabase.from("to_do_list").select().eq(
+  const { data } = await supabase.from("to_do_list").select().eq(
     "user_id",
     user?.id,
   ).order("id", { ascending: false }).limit(1).single();
 
-  return new Response(JSON.stringify(response), {
+  return new Response(JSON.stringify(data), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
