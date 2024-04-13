@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization")!;
-  const { toDoId } = await req.json();
+  const { toDoId, content } = await req.json();
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -16,13 +16,6 @@ Deno.serve(async (req) => {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  // 유저 id === todo.userId
-  // 현재 수정할 투두 찾기 toDoId
-  // isdone 업데이트
-  // isdone false => true
-  //        true => false
-  // 업데이트된 투두 응답
 
   const { data: existToDoData } = await supabase.from("to_do_list").select().eq(
     "id",
@@ -41,12 +34,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  await supabase.from("to_do_list").update({
-    isdone: !existToDoData.isdone,
-  }).eq("id", toDoId);
-
-  const { data: updatedToDoData } = await supabase.from("to_do_list").select()
-    .eq("id", toDoId).limit(1).single();
+  const {data: updatedToDoData} = await supabase.from("to_do_list").update({
+    content,
+  }).eq("id", toDoId).select().single();
 
   return new Response(JSON.stringify(updatedToDoData), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },

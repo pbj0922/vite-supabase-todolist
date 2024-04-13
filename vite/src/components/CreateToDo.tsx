@@ -1,7 +1,13 @@
-import { FC, FormEvent, useState } from "react";
+import { Dispatch, FC, FormEvent, SetStateAction, useState } from "react";
 import supabase from "../lib/supabaseClient";
+import { IToDo } from "..";
 
-const CreateToDo: FC = () => {
+interface CreateToDoProps {
+  toDos: IToDo[];
+  setToDos: Dispatch<SetStateAction<IToDo[]>>;
+}
+
+const CreateToDo: FC<CreateToDoProps> = ({ toDos, setToDos }) => {
   const [content, setContent] = useState<string>("");
 
   const onSubmitCreateToDo = async (e: FormEvent) => {
@@ -10,11 +16,12 @@ const CreateToDo: FC = () => {
 
       if (!content) return;
 
-      const response = await supabase.functions.invoke("create-to-do", {
+      const { data } = await supabase.functions.invoke("create-to-do", {
         body: { content },
       });
 
-      console.log(response);
+      setToDos([data, ...toDos]);
+      setContent("");
     } catch (error) {
       console.error(error);
     }

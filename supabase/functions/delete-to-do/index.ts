@@ -17,13 +17,6 @@ Deno.serve(async (req) => {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 유저 id === todo.userId
-  // 현재 수정할 투두 찾기 toDoId
-  // isdone 업데이트
-  // isdone false => true
-  //        true => false
-  // 업데이트된 투두 응답
-
   const { data: existToDoData } = await supabase.from("to_do_list").select().eq(
     "id",
     toDoId,
@@ -41,14 +34,10 @@ Deno.serve(async (req) => {
     );
   }
 
-  await supabase.from("to_do_list").update({
-    isdone: !existToDoData.isdone,
-  }).eq("id", toDoId);
+  const deletedResponse = await supabase.from("to_do_list").delete()
+    .eq("id", toDoId);
 
-  const { data: updatedToDoData } = await supabase.from("to_do_list").select()
-    .eq("id", toDoId).limit(1).single();
-
-  return new Response(JSON.stringify(updatedToDoData), {
+  return new Response(JSON.stringify(deletedResponse), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
